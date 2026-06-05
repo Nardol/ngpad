@@ -1,6 +1,7 @@
 #ifndef _____PROPERTIES_HPP
 #define _____PROPERTIES_HPP
 #include<sstream>
+#include<string>
 #include<unordered_map>
 
 class Properties {
@@ -27,7 +28,7 @@ auto it = map.find(key);
 return it==map.end()? (def? def : "") : it->second;
 }
 
-template <class T> get (const std::string& key, const T& def) const {
+template <class T> T get (const std::string& key, const T& def) const {
 auto it = map.find(key);
 if (it==map.end()) return def;
 T value;

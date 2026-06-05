@@ -1,5 +1,11 @@
 obj/
 objd/
+obj-linux/
+objd-linux/
+obj-windows/
+objd-windows/
+NGPad
+NGPadd
 test*
 temp*
 tmp*

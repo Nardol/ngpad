@@ -10,8 +10,8 @@
 bool SetLiveRegion (wxWindow* win, int value = LIVE_REGION_POLITE);
 bool LiveRegionUpdated (wxWindow* win);
 #else
-bool SetLiveRegion (wxWindow* win, int value = LIVE_REGION_POLITE) { return false; }
-bool LiveRegionUpdated (wxWindow* win) { return false; }
+inline bool SetLiveRegion (wxWindow* win, int value = LIVE_REGION_POLITE) { return false; }
+inline bool LiveRegionUpdated (wxWindow* win) { return false; }
 #endif
 
 #endif

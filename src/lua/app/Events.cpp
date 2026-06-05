@@ -266,7 +266,7 @@ Binding::LuaClass<wxMouseEvent>(L, "MouseEvent")
 //G integer: flags indicating which buttons where down
 .getter("button", &wxMouseEvent::GetButton)
 //G integer: number of consecutive clicks (1=single click, 2=double click, 3=triple click)
-.getter("clickCount", wxMouseEvent::GetClickCount)
+.getter("clickCount", &wxMouseEvent::GetClickCount)
 //G integer: rotation of the mouse wheel
 .getter("wheelRotation", &wxMouseEvent::GetWheelRotation)
 //G boolean: is the left button down?
@@ -327,4 +327,3 @@ C(LEAVE_WINDOW)
 
 return 1;
 }
-

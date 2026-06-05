@@ -37,6 +37,7 @@
 #include<wx/dynlib.h>
 
 #include<boost/core/demangle.hpp>
+#include<array>
 #include<string>
 #include<vector>
 #include<unordered_map>
@@ -120,9 +121,11 @@ if (config.get("single_instance", true) && CheckSingleInstance(cmdLineArgs)) ret
 worker.start();
 
 std::string lookMode = config.get("appearance", "none");
+#if wxCHECK_VERSION(3, 3, 0)
 if (lookMode=="system") SetAppearance(Appearance::System);
 else if (lookMode=="light") SetAppearance(Appearance::Light);
 else if (lookMode=="dark") SetAppearance(Appearance::Dark);
+#endif
 
 wxArtProvider::PushBack(new CustomArtProvider());
 wxSystemOptions::SetOption("msw.remap", 2);
@@ -213,7 +216,11 @@ worker.stop();
 CloseSingleInstance();
 //CloseLua(L);
 
+#ifdef __WXMSW__
 wxFileConfig fileConfig(GetAppName());
+#else
+wxFileConfig fileConfig(GetAppName(), GetVendorName(), userDir + "/" FILE_HISTORY_FILENAME, wxEmptyString, wxCONFIG_USE_LOCAL_FILE);
+#endif
 docManager->FileHistorySave(fileConfig);
 
 return wxApp::OnExit();
@@ -243,7 +250,11 @@ docManager = new wxDocManager();
 auto consoleTpl = new wxDocTemplate(docManager, "Console", "*.console", wxEmptyString, "console", "consoleDoc", "consoleView", wxCLASSINFO(ConsoleDocument), wxCLASSINFO(ConsoleView), wxTEMPLATE_INVISIBLE);
 auto textTpl = new wxDocTemplate(docManager, "Text files", "*.*", wxEmptyString, "txt", "textDoc", "textView", wxCLASSINFO(TextDocument), wxCLASSINFO(TextView), wxTEMPLATE_VISIBLE);
 
+#ifdef __WXMSW__
 wxFileConfig fileConfig(GetAppName());
+#else
+wxFileConfig fileConfig(GetAppName(), GetVendorName(), userDir + "/" FILE_HISTORY_FILENAME, wxEmptyString, wxCONFIG_USE_LOCAL_FILE);
+#endif
 docManager->FileHistoryLoad(fileConfig);
 
 return true;
@@ -266,6 +277,10 @@ cout << "appDir = " << appDir << endl;
 
 auto userDirFn = wxFileName::DirName(userDir);
 auto userLocalDirFn = wxFileName::DirName(userLocalDir);
+#ifndef __WXMSW__
+auto userConfigDirFn = wxFileName::DirName(userDir + "/config");
+auto userLocalConfigDirFn = wxFileName::DirName(userLocalDir + "/config");
+#endif
 
 pathList.Add(userDir);
 pathList.Add(userLocalDir);
@@ -274,6 +289,10 @@ pathList.Add(appDir);
 return 
 userDirFn .Mkdir(wxS_DIR_DEFAULT, wxPATH_MKDIR_FULL)
 && userLocalDirFn .Mkdir(wxS_DIR_DEFAULT, wxPATH_MKDIR_FULL)
+#ifndef __WXMSW__
+&& userConfigDirFn .Mkdir(wxS_DIR_DEFAULT, wxPATH_MKDIR_FULL)
+&& userLocalConfigDirFn .Mkdir(wxS_DIR_DEFAULT, wxPATH_MKDIR_FULL)
+#endif
 && userDirFn.IsDirReadable()
 && userLocalDirFn.IsDirReadable();
 }
@@ -379,7 +398,19 @@ if (!pluginmap) pluginmap = new PluginMap();
 auto& plugins = *pluginmap;
 if (plugins.find(name)!=plugins.end()) return true;
 wxLogNull logNull;
-auto dll = std::make_unique<wxDynamicLibrary>( U(name) );
+wxString pluginName = U(name);
+std::array<wxString, 4> candidates = {
+pluginName,
+pluginName + EXT_DLL,
+FindAppFile(pluginName),
+FindAppFile(pluginName + EXT_DLL)
+};
+std::unique_ptr<wxDynamicLibrary> dll;
+for (const auto& candidate: candidates) {
+if (candidate.empty()) continue;
+dll = std::make_unique<wxDynamicLibrary>(candidate);
+if (dll && dll->IsLoaded()) break;
+}
 if (!dll || !dll->IsLoaded()) return false;
 PluginFunc func = (PluginFunc) dll->GetSymbol("LoadPlugin");
 if (!func || !func(*this)) return false;
@@ -746,7 +777,11 @@ auto tools = new wxMenu();
 tools->Append(IDM_MULTIFIND, MSG("Multifind") + "...\tCtrl+Shift+F");
 tools->Append(IDM_MULTIREPLACE, MSG("Multireplace") + "...\tCtrl+Shift+H");
 tools->Append(IDM_FILE_TREE, MSG("WorkspaceFileTree") + "...");
+#ifdef __WXMSW__
 tools->Append(IDM_EXEC_COMMAND, MSG("ExecCommand") + "...\tF10");
+#else
+tools->Append(IDM_EXEC_COMMAND, MSG("ExecCommand") + "...\tCtrl+Shift+Enter");
+#endif
 tools->Append(IDM_LUA_CONSOLE, MSG("LuaConsoleMI") + "\tF12");
 tools->SetClientObject(new StringClientData("tools"));
 menubar->Append(tools, MSG("ToolsMenu"));
@@ -794,4 +829,3 @@ toolbar->AddTool(wxID_FIND, MSG("Find"), wxArtProvider::GetBitmapBundle(wxART_FI
 toolbar->AddTool(wxID_REPLACE, MSG("Replace"), wxArtProvider::GetBitmapBundle(wxART_FIND_AND_REPLACE));
 return toolbar;
 }
-

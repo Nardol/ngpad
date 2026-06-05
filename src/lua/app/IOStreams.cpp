@@ -29,7 +29,7 @@ if (until=='\n' && c=='\r') continue;
 if (until && c==until) break;
 out+=c;
 }
-else Sleep(10);
+else wxMilliSleep(10);
 if (out.empty()) continue;
 if (in.LastRead()!=1 || (max>0 && out.size()>=max) || (timeout>0 && time-lastReadTime>timeout)) break;
 }

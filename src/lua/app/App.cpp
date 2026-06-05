@@ -80,7 +80,7 @@ Binding::LuaClass<App>(L, "App")
 //M Open a new tab/window with an empty document
 .method("openNewDocument", SYNC(&AppCreateNewDoc))
 
-//M Execute a command and put the result in a new tab/window. This is equivalent to Tools>Run... or F10
+//M Execute a command and put the result in a new tab/window. This is equivalent to Tools>Run...
 //P command: string: nil: command to execute
 //R boolean: true if the execution succeeded. 
 .method("execute", SYNC(&App::ExecuteCommand))
@@ -113,4 +113,3 @@ lua_pop(L, 1);
 lua_push(L, &wxGetApp());
 return 1;
 }
-

@@ -110,7 +110,7 @@ c = 0;
 in.Read(&c, 1);
 lastReadTime = time;
 }
-else Sleep(10);
+else wxMilliSleep(10);
 if (i<=0) continue;
 if (c=='\n' || !c || i>=4094 || in.LastRead()!=1 || time-lastReadTime>250) {
 buf[i] = 0;
@@ -125,4 +125,3 @@ Append(s);
 stopped = true;
 println("Live text appender finished");
 }
-

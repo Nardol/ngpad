@@ -263,7 +263,8 @@ wxRegEx("^" + indent, wxRE_NEWLINE) .Replace(&text, "");
 Replace(sp, ep, text);
 if (start==end) {
 PushUndoState(new TextReplaced(this, sp, start, oldText, text, TC_POS_END), false);
-SetInsertionPoint(std::max(0UZ, start-indent.size()));
+auto indentSize = static_cast<long>(indent.size());
+SetInsertionPoint(start>indentSize? start-indentSize : 0);
 } 
 else {
 PushUndoState(new TextReplaced(this, sp, ep, oldText, text, GetSelectionDirection(start, end, anchor)), false);
@@ -724,7 +725,7 @@ int z = 0;
 TextLexer tl;
 tl.Reset(GetValue());
 while(z++<1000 && tl.Next());
-Beep(1200, 120);
+PlatformBeep(1200, 120);
 }break;
 */
 #endif
@@ -760,12 +761,14 @@ static TextEditor* createTextCtrlTextEditor (TextView& view, wxWindow* parent, P
 bool wrap = props.get("line_wrap", false);
 flags |= (wrap? wxTE_BESTWRAP : wxHSCROLL | wxTE_DONTWRAP);
 auto te = new TextCtrlTextEditor(&view, parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, flags);
+#if wxUSE_SPELLCHECK
 if ((flags&(wxTE_RICH|wxTE_RICH2)) && props.get("spell_check", false)) {
 auto proof = wxTextProofOptions::Default();
 proof = proof.Language(props.get("spell_check_language", "fr"));
 if (props.get("grammar_check", true)) proof = proof.GrammarCheck();
 te->EnableProofCheck(proof);
 }
+#endif
 return te;
 }
 
@@ -804,8 +807,4 @@ TextEditor* TextEditor::Create (TextView& view, wxWindow* parent, Properties& pr
 std::string name = props.get("editor", "raw");
 return Create(name, view, parent, props);
 }
-
-
-
-
 

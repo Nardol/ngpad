@@ -7,6 +7,9 @@
 #define APP_PRODUCT_NAME APP_DISPLAY_NAME
 #define APP_WEBSITE_URL "http://quentinc.net/"
 #define APP_COPYRIGHT_INFO "Copyright © 2023-2025"
+#if !defined(VERSION_MAJOR) || !defined(VERSION_MINOR) || !defined(VERSION_BUILD_MAJOR) || !defined(VERSION_BUILD_MINOR) || !defined(VERSION_STRING)
+#error VERSION_* macros must be defined by the build system
+#endif
 #define APP_VERSION_MAJOR VERSION_MAJOR
 #define APP_VERSION_MINOR VERSION_MINOR
 #define APP_VERSION_BUILD_MAJOR VERSION_BUILD_MAJOR
@@ -16,6 +19,7 @@
 
 #define CONFIG_FILENAME "config/config.ini"
 #define SESSION_FILENAME "config/session.ini"
+#define FILE_HISTORY_FILENAME "config/file-history.ini"
 #define FIND_REPLACE_HISTORY_FILENAME "config/find-replace-history.ini"
 #define EDITORCONFIG_ROOT_FILENAME "config/editorconfig.ini"
 #define EDITORCONFIG_FILENAME ".editorconfig"

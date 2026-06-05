@@ -4,6 +4,7 @@
 #ifndef WX_PRECOMP
  #include <wx/wx.h>
 #endif
+#include<functional>
 #include<string>
 #include<iosfwd>
 #include<sstream>
@@ -68,6 +69,15 @@ finally (const F& x): f(x) {}
 inline bool BellIfFalse (bool b) {
 if (!b) wxBell();
 return b;
+}
+
+inline bool PlatformBeep (int frequency, int duration) {
+#ifdef __WIN32
+return Beep(frequency, duration);
+#else
+wxBell();
+return true;
+#endif
 }
 
 #endif

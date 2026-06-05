@@ -278,8 +278,8 @@ long start, end;
 e->GetSelection(&start, &end);
 wxString sel1 = e->GetRange(start, end);
 wxString sel2 = e->GetStringSelection();
-Beep(800, 120);
-Beep(600, 120);
+PlatformBeep(800, 120);
+PlatformBeep(600, 120);
 wxMessageBox(sel1, sel2, wxICON_INFORMATION);
 }break;
 #endif
@@ -287,5 +287,3 @@ default: return false;
 }
 return true;
 }
-
-

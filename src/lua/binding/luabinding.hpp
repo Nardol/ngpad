@@ -1,6 +1,10 @@
-	#ifndef _____LUA_BINDING_HPP_____
+#ifndef _____LUA_BINDING_HPP_____
 #define _____LUA_BINDING_HPP_____
+#if __has_include("lua/lua.hpp")
 #include "lua/lua.hpp"
+#else
+#include "lua.hpp"
+#endif
 #include<memory>
 #include<string>
 #include<cstring>

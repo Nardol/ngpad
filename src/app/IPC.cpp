@@ -1,8 +1,9 @@
 #include "App.hpp"
 #include <wx/ipc.h>
 #include <wx/snglinst.h>
+#include <memory>
 
-wxSingleInstanceChecker singleInstanceChecker;
+std::unique_ptr<wxSingleInstanceChecker> singleInstanceChecker;
 wxServer* ipcServer = nullptr;
 
 struct IPCConnection: wxConnection {
@@ -29,11 +30,17 @@ IPCConnection* OnAcceptConnection (const wxString& topic) final override { retur
 };
 
 bool CheckSingleInstance (const std::vector<wxString>& cmdArgs) {
-singleInstanceChecker.Create(APP_NAME);
-if (singleInstanceChecker.IsAnotherRunning()) {
+singleInstanceChecker = std::make_unique<wxSingleInstanceChecker>();
+if (!singleInstanceChecker->Create(APP_NAME)) {
+wxLogWarning("Unable to initialize single-instance checker for " APP_NAME);
+singleInstanceChecker.reset();
+return false;
+}
+if (singleInstanceChecker->IsAnotherRunning()) {
 IPCClient client;
 std::unique_ptr<IPCConnection> connection(client.Connect());
 if (connection) for (auto& arg: cmdArgs) connection->Execute(arg);
+singleInstanceChecker.reset();
 return true;
 }
 ipcServer = new IPCServer();
@@ -43,9 +50,8 @@ return false;
 void CloseSingleInstance () {
 if (ipcServer) delete ipcServer;
 ipcServer = nullptr;
+singleInstanceChecker.reset();
 }
-
-
 
 
 

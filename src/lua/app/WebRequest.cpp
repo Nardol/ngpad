@@ -7,6 +7,8 @@
 
 LuaRegisterReferenceType(wxInputStream);
 LuaRegisterReferenceType(wxOutputStream);
+
+#if wxUSE_WEBREQUEST
 LuaRegisterValueType(wxWebRequest);
 LuaRegisterValueType(wxWebResponse);
 LuaRegisterTypeAlias(wxWebRequestBase, wxWebRequest);
@@ -150,3 +152,19 @@ Binding::LuaClass<wxWebRequest>(L, "WebRequest")
 lua_getglobal(L, "WebRequest");
 return 1;
 }
+#else
+static int webRequestUnavailable (lua_State* L) {
+return luaL_error(L, "WebRequest is unavailable because wxWidgets was built with wxUSE_WEBREQUEST=0");
+}
+
+export int luaopen_WebRequest (lua_State* L) {
+lua_newtable(L);
+lua_newtable(L);
+lua_pushcfunction(L, &webRequestUnavailable);
+lua_setfield(L, -2, "__call");
+lua_setmetatable(L, -2);
+lua_pushvalue(L, -1);
+lua_setglobal(L, "WebRequest");
+return 1;
+}
+#endif

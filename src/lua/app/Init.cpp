@@ -48,6 +48,42 @@ lua_pushlstring(L, reinterpret_cast<const char*>(p), len);
 return 1;
 }
 
+static bool LuaBeep (int frequency, int duration) {
+return PlatformBeep(frequency, duration);
+}
+
+#ifndef __WXMSW__
+static void PrependLuaPath (lua_State* L, const char* field, const wxArrayString& patterns) {
+lua_getglobal(L, "package");
+lua_getfield(L, -1, field);
+wxString path = lua_tostring(L, -1);
+for (const auto& pattern: patterns) {
+if (pattern.empty()) continue;
+path = pattern + ";" + path;
+}
+lua_pop(L, 1);
+lua_push(L, path);
+lua_setfield(L, -2, field);
+lua_pop(L, 1);
+}
+
+static void ConfigureLuaPaths (lua_State* L, App& app) {
+wxArrayString dirs;
+dirs.push_back(app.GetUserDir());
+dirs.push_back(app.GetUserLocalDir());
+dirs.push_back(app.GetAppDir());
+wxArrayString luaPatterns, nativePatterns;
+for (const auto& dir: dirs) {
+if (dir.empty()) continue;
+luaPatterns.push_back(dir + "/?.lua");
+luaPatterns.push_back(dir + "/?/init.lua");
+nativePatterns.push_back(dir + "/?" EXT_DLL);
+}
+PrependLuaPath(L, "path", luaPatterns);
+PrependLuaPath(L, "cpath", nativePatterns);
+}
+#endif
+
 wxString LuaGetBanner () {
 return U(LUA_COPYRIGHT) + "\n" + U(LUA_AUTHORS);
 }
@@ -124,13 +160,16 @@ wxCriticalSection** cs = reinterpret_cast<wxCriticalSection**>( lua_getextraspac
 wxCriticalSectionLocker csl(**cs);
 lua_setwarnf(L, &luaWarn, nullptr);
 luaL_openlibs(L);
+#ifndef __WXMSW__
+ConfigureLuaPaths(L, app);
+#endif
 luaopen_DynamicLoad(L);
 luaopen_UTF8(L);
 luaopen_IO(L);
 luaopen_OS(L);
 
 lua_pushglobal(L, "print", &luaPrint);
-lua_pushglobal(L, "beep", &Beep);
+lua_pushglobal(L, "beep", &LuaBeep);
 
 #ifdef DEBUG
 lua_getglobal(L, "debug");

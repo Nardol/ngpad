@@ -1,9 +1,15 @@
 #ifndef ____LUA_IMPL_0_HPP
 #define ____LUA_IMPL_0_HPP
 extern "C" {
+#if __has_include("lua/lua.h")
 #include "lua/lua.h"
 #include "lua/lualib.h"
 #include "lua/lauxlib.h"
+#else
+#include "lua.h"
+#include "lualib.h"
+#include "lauxlib.h"
+#endif
 }
 #include<optional>
 #include "../binding/luabinding.hpp"

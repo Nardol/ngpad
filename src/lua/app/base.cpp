@@ -1,5 +1,9 @@
 #include "base.hpp"
 
+#ifndef __WIN32
+#include <dlfcn.h>
+#endif
+
 thread_local lua_State* currentLuaState = nullptr;
 
 int lua_iswxpoint (lua_State* L, int idx) {
@@ -102,7 +106,11 @@ return 1;
 
 int wxDynamicLoad (lua_State* L) {
 std::string name = lua_tostring(L, 2);
+#ifdef __WIN32
 auto func = reinterpret_cast<lua_CFunction>(GetProcAddress(GetModuleHandle(NULL), ("luaopen_" + name).c_str()));
+#else
+auto func = reinterpret_cast<lua_CFunction>(dlsym(RTLD_DEFAULT, ("luaopen_" + name).c_str()));
+#endif
 if (func) {
 func(L);
 lua_pushvalue(L, 2);
